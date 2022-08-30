@@ -1,0 +1,4 @@
+{
+  "Checks": "bugprone-*, -bugprone-easily-swappable-parameters, clang-analyzer-*, misc-*, performance-*, portability-*, readability-*, google-*, -google-objc-*",
+}
+}
