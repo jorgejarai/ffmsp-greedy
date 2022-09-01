@@ -24,4 +24,4 @@ enable_cxx_compiler_flag_if_supported("-pedantic")
 
 include_directories(include)
 
-add_executable(greedy src/main.cpp src/greedy.cpp src/args.cpp src/timer.cpp)
+add_executable(greedy src/main.cpp src/greedy.cpp src/args.cpp src/timer.cpp src/rng.cpp)
