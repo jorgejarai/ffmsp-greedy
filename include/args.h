@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <map>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -16,8 +17,7 @@ private:
 public:
     Arguments(const std::vector<char>& args, int argc, char* argv[]);
 
-    int operator[](char arg) const;
-    int get(char arg) const;
+    std::optional<int> get(char arg) const;
 };
 
 #endif  // ARGS_H

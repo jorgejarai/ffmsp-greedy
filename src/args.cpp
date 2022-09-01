@@ -18,14 +18,12 @@ std::string Arguments::gen_getopt() {
 
 Arguments::Arguments(const std::vector<char>& args, int argc, char* argv[])
     : m_def(args) {
-    m_args.clear();
-
     const auto opts = gen_getopt();
 
     int c;
     while ((c = getopt(argc, argv, opts.c_str())) != -1) {
         if (c == '?') {
-            exit(-1);
+            exit(1);
         }
 
         char arg_name = static_cast<char>(c);
@@ -33,11 +31,10 @@ Arguments::Arguments(const std::vector<char>& args, int argc, char* argv[])
     }
 }
 
-int Arguments::operator[](char arg) const {
-    return get(arg);
-}
+std::optional<int> Arguments::get(char arg) const {
+    if (m_args.count(arg) == 0) {
+        return {};
+    }
 
-int Arguments::get(char arg) const {
-    // TODO: check if value does not exist
     return m_args.at(arg);
 }

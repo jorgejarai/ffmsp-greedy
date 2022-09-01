@@ -12,10 +12,18 @@ const std::vector<char> args_list{'i', 't'};
 int main(int argc, char* argv[]) {
     Arguments args(args_list, argc, argv);
 
-    const int instance = args['i'];
-    const int threshold = args['t'];
+    const auto instance = args.get('i');
+    const auto threshold = args.get('t');
 
-    ffmsp::greedy({"AATG", "CTGA", "AAAA", "AATA"}, args['i']);
+    if (!instance || !threshold) {
+        return 1;
+    }
+
+    if (instance == 0) {
+        return 1;
+    }
+
+    ffmsp::greedy({"AATG", "CTGA", "AAAA", "AATA"}, *instance);
 
     return 0;
 }
