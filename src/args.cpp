@@ -4,19 +4,21 @@
 
 #include <algorithm>
 #include <stdexcept>
+#include <string>
 
 std::string Arguments::gen_getopt() {
     std::string ret;
 
     for (const auto& arg : m_def) {
-        ret.push_back(arg);
+        ret.push_back(arg.symbol);
         ret.push_back(':');
     }
 
     return ret;
 }
 
-Arguments::Arguments(const std::vector<char>& args, int argc, char* argv[])
+Arguments::Arguments(const std::vector<ArgDefinition>& args, int argc,
+                     char* argv[])
     : m_def(args) {
     const auto opts = gen_getopt();
 
@@ -27,14 +29,28 @@ Arguments::Arguments(const std::vector<char>& args, int argc, char* argv[])
         }
 
         char arg_name = static_cast<char>(c);
-        m_args[arg_name] = std::atoi(optarg);
-    }
-}
+        auto arg_def = std::find_if(m_def.begin(), m_def.end(),
+                                    [arg_name](const ArgDefinition& def) {
+                                        return def.symbol == arg_name;
+                                    });
 
-std::optional<int> Arguments::get(char arg) const {
-    if (m_args.count(arg) == 0) {
-        return {};
-    }
+        if (arg_def == m_def.end()) {
+            exit(1);
+        }
 
-    return m_args.at(arg);
+        switch (arg_def->type) {
+        case ArgDefinition::INT:
+            m_args[arg_name] = std::stoi(optarg);
+            break;
+        case ArgDefinition::DOUBLE:
+            m_args[arg_name] = std::stod(optarg);
+            break;
+        case ArgDefinition::STRING:
+            m_args[arg_name] = std::string(optarg);
+            break;
+        default:
+            m_args[arg_name] = std::stoi(optarg);
+            break;
+        }
+    }
 }
