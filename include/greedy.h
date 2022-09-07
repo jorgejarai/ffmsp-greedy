@@ -6,8 +6,8 @@
 
 namespace ffmsp {
 
-void greedy(const std::vector<std::string>& strings, int threshold);
-void random_greedy(const std::vector<std::string>& strings, int threshold,
+void greedy(const std::vector<std::string>& strings, double threshold);
+void random_greedy(const std::vector<std::string>& strings, double threshold,
                    double alpha);
 
 };  // namespace ffmsp

@@ -14,14 +14,15 @@ static void check_strings(const std::vector<std::string>& strings) {
 
     // Check if any of the strings has a different size than the others
     std::size_t size_1st = strings.front().size();
-    for (std::size_t i = 1; i < strings.size(); ++i) {
-        if (strings[i].size() != size_1st) {
-            throw std::invalid_argument("strings must have the same size");
-        }
+    if (std::any_of(strings.begin(), strings.end(),
+                    [size_1st](const std::string& str) {
+                        return size_1st != str.size();
+                    })) {
+        throw std::invalid_argument("strings cannot be empty");
     }
 }
 
-void ffmsp::greedy(const std::vector<std::string>& strings, int threshold) {
+void ffmsp::greedy(const std::vector<std::string>& strings, double threshold) {
     (void)threshold;
 
     check_strings(strings);
@@ -39,7 +40,7 @@ void ffmsp::greedy(const std::vector<std::string>& strings, int threshold) {
 }
 
 void ffmsp::random_greedy(const std::vector<std::string>& strings,
-                          int threshold, double alpha) {
+                          double threshold, double alpha) {
     (void)threshold;
     (void)alpha;
 
