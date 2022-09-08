@@ -24,6 +24,10 @@ static void check_strings(const std::vector<std::string>& strings) {
     }
 }
 
+// Corregir
+// Inicialmente, restar del alfabeto los caracteres en la columna
+// Escoger uno de los restantes
+// Si están todos los caracteres, escoger el que se repite menos
 static char least_common_char(const std::map<char, std::size_t>& column) {
     auto max_it = std::min_element(column.begin(), column.end());
     std::size_t least_common_count = max_it->second;
@@ -77,7 +81,13 @@ void ffmsp::greedy(const std::vector<std::string>& strings, double threshold) {
     word.push_back(least_common_char(V_j[0]));
 
     for (std::size_t i = 1; i < string_len; ++i) {
-        // TODO: meter distancia de Hamming y lo demás
+        // Para cada carácter c en Σ:
+        //    Generar un candidato concatenando c
+        //    Calculamos cuántos strings ≥ métrica para el candidato
+        //    Escogemos el candidato con mayor cantidad
+        //    De no haberlo, se escoge al azar entre los empatados
+        //    Como fallback, escogemos de V_j
+
         word.push_back(least_common_char(V_j[i]));
     }
 
