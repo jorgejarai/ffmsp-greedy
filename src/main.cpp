@@ -9,7 +9,7 @@
 
 const std::vector<Arguments::ArgDefinition> args_list{
     {'i', Arguments::ArgDefinition::STRING},
-    {'t', Arguments::ArgDefinition::INT},
+    {'t', Arguments::ArgDefinition::STRING},
     {'h',                                // Treat -th as -t -h
      Arguments::ArgDefinition::DOUBLE},  // (the threshold value will actually
                                          // be contained in the -h argument)
