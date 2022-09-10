@@ -118,7 +118,7 @@ ffmsp::result ffmsp::random_greedy(const std::vector<std::string>& strings,
     std::size_t metric = 0;
 
     for (std::size_t i = threshold_count; i < string_len; ++i) {
-        if (alpha != 1.0 && RNG::get_instance().rand_real(0, 1) > alpha) {
+        if (alpha >= 1.0 && RNG::get_instance().rand_real(0, 1) > alpha) {
             word += RNG::get_instance().rand_choose(ALPHABET);
             continue;
         }
