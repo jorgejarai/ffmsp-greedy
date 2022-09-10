@@ -6,9 +6,14 @@
 
 namespace ffmsp {
 
-void greedy(const std::vector<std::string>& strings, double threshold);
-void random_greedy(const std::vector<std::string>& strings, double threshold,
-                   double alpha);
+struct result {
+    std::string str;
+    std::size_t metric;
+};
+
+result greedy(const std::vector<std::string>& strings, double threshold);
+result random_greedy(const std::vector<std::string>& strings, double threshold,
+                     double alpha);
 
 };  // namespace ffmsp
 

@@ -28,7 +28,14 @@ int main(int argc, char* argv[]) {
     const auto instance = instance_arg.value();
     const auto threshold = threshold_arg.value();
 
-    ffmsp::greedy({"AATG", "CTGA", "AAAA", "AATA"}, threshold);
+    if (threshold > 1) {
+        return 1;
+    }
+
+    const auto [str, metric] =
+        ffmsp::greedy({"AATG", "CTGA", "AAAA", "AATA"}, threshold);
+
+    std::cout << str << " (" << metric << ")\n";
 
     return 0;
 }

@@ -2,10 +2,25 @@
 
 #include <algorithm>
 #include <iostream>
+#include <iterator>
 #include <map>
+#include <optional>
+#include <set>
 #include <stdexcept>
 
 #include "rng.h"
+
+static const std::vector<char> ALPHABET{'A', 'C', 'G', 'T'};
+
+// For all s ∈ src, it inserts f(s) into sink if f(s) contains a value
+template <typename Src, typename Sink, typename F>
+static void transform_if(Src&& src, Sink&& sink, F&& f) {
+    for (auto&& x : std::forward<Src>(src)) {
+        if (auto&& e = f(decltype(x)(x))) {
+            *sink++ = *decltype(e)(e);
+        }
+    }
+}
 
 static void check_strings(const std::vector<std::string>& strings) {
     // Check if any of the strings is empty
@@ -24,32 +39,42 @@ static void check_strings(const std::vector<std::string>& strings) {
     }
 }
 
-// Corregir
-// Inicialmente, restar del alfabeto los caracteres en la columna
-// Escoger uno de los restantes
-// Si están todos los caracteres, escoger el que se repite menos
 static char least_common_char(const std::map<char, std::size_t>& column) {
-    auto max_it = std::min_element(column.begin(), column.end());
-    std::size_t least_common_count = max_it->second;
+    // If not all the characters in the alphabet were used
+    if (column.size() < ALPHABET.size()) {
+        std::vector<char> used_chars;
 
-    std::vector<char>
-        least_common_chars;  // vemos y agregamos las letras menos repetidas
-    for (const auto& pair : column) {
-        if (pair.second == least_common_count) {
-            least_common_chars.push_back(pair.first);
-        }
+        // Get all the used characters in the column
+        std::transform(column.begin(), column.end(),
+                       std::back_inserter(used_chars),
+                       [](const auto& p) { return p.first; });
+
+        // Subtract used_chars from the alphabet to get the unused characters
+        std::vector<char> unused_chars;
+        std::set_difference(ALPHABET.begin(), ALPHABET.end(),
+                            used_chars.begin(), used_chars.end(),
+                            std::back_inserter(unused_chars));
+
+        return RNG::get_instance().rand_choose(unused_chars);
     }
 
-    if (least_common_chars.size() == 1) {
-        return least_common_chars[0];
-    }
+    // If all the characters were used, return the least used one
 
-    auto next_char_index =  // si hay mas de uno iguales se escoge al azar
-        RNG::get_instance().rand_int(0, least_common_chars.size() - 1);
+    auto min_it = std::min_element(column.begin(), column.end());
+    std::size_t least_common_count = min_it->second;
 
-    return least_common_chars[next_char_index];
+    std::vector<char> least_common_chars;
+    transform_if(column, std::back_inserter(least_common_chars),
+                 [least_common_count](const auto& pair) -> std::optional<char> {
+                     return pair.second == least_common_count
+                                ? std::make_optional(pair.first)
+                                : std::nullopt;
+                 });
+
+    return RNG::get_instance().rand_choose(least_common_chars);
 }
 
+// Hamming distance between str1 and str2
 static std::size_t d(const std::string& str1, const std::string& str2) {
     std::size_t distance = 0;
     for (std::size_t i = 0; i < str1.size(); ++i) {
@@ -61,14 +86,14 @@ static std::size_t d(const std::string& str1, const std::string& str2) {
     return distance;
 }
 
-void ffmsp::greedy(const std::vector<std::string>& strings, double threshold) {
-    (void)threshold;
-
+ffmsp::result ffmsp::greedy(const std::vector<std::string>& strings,
+                            double threshold) {
     check_strings(strings);
 
     std::size_t string_len = strings.front().size();
     std::vector<std::map<char, std::size_t>> V_j(string_len);
 
+    // Build the frequency map for every character in every column
     for (std::size_t i = 0; i < strings.size(); ++i) {
         for (const auto& str : strings) {
             const auto cur_char = str[i];
@@ -78,9 +103,15 @@ void ffmsp::greedy(const std::vector<std::string>& strings, double threshold) {
     }
 
     std::string word;
-    word.push_back(least_common_char(V_j[0]));
+    const std::size_t threshold_count = threshold * strings[0].length();
 
-    for (std::size_t i = 1; i < string_len; ++i) {
+    // Randomly construct the string until the threshold is reached
+    for (std::size_t i = 0; i < threshold_count; ++i) {
+        word.push_back(least_common_char(V_j[0]));
+    }
+
+    std::size_t metric = 0;
+    for (std::size_t i = threshold_count; i < string_len; ++i) {
         // Para cada carácter c en Σ:
         //    Generar un candidato concatenando c
         //    Calculamos cuántos strings ≥ métrica para el candidato
@@ -88,16 +119,58 @@ void ffmsp::greedy(const std::vector<std::string>& strings, double threshold) {
         //    De no haberlo, se escoge al azar entre los empatados
         //    Como fallback, escogemos de V_j
 
-        word.push_back(least_common_char(V_j[i]));
+        std::map<std::string, std::size_t> candidate_metrics;
+
+        // Calculate the metric for every possible candidate
+        for (const auto& c : ALPHABET) {
+            std::string candidate = word + c;
+            std::size_t candidate_metric = 0;
+
+            for (const auto& str : strings) {
+                if (d(candidate, str) >= metric) {
+                    ++candidate_metric;
+                }
+            }
+
+            candidate_metrics[candidate] = candidate_metric;
+        }
+
+        // If there aren't any viable candidates, construct one with one of the
+        // least used characters
+        if (candidate_metrics.empty()) {
+            word.push_back(least_common_char(V_j[i]));
+            continue;
+        }
+
+        // Select the most used candidate (or choose one randomly if there are
+        // more)
+        auto max_it = std::max_element(candidate_metrics.begin(),
+                                       candidate_metrics.end());
+        std::size_t most_common_count = max_it->second;
+
+        std::vector<std::string> most_common_candidates;
+        transform_if(candidate_metrics,
+                     std::back_inserter(most_common_candidates),
+                     [most_common_count](
+                         const auto& pair) -> std::optional<std::string> {
+                         return pair.second == most_common_count
+                                    ? std::make_optional(pair.first)
+                                    : std::nullopt;
+                     });
+
+        word = RNG::get_instance().rand_choose(most_common_candidates);
+        metric = most_common_count;
     }
 
-    std::cout << word << std::endl;
+    return {word, metric};
 }
 
-void ffmsp::random_greedy(const std::vector<std::string>& strings,
-                          double threshold, double alpha) {
+ffmsp::result ffmsp::random_greedy(const std::vector<std::string>& strings,
+                                   double threshold, double alpha) {
     (void)threshold;
     (void)alpha;
 
     check_strings(strings);
+
+    return {"", 0};
 }
