@@ -25,6 +25,8 @@ Arguments::Arguments(const std::vector<ArgDefinition>& args, int argc,
     : m_def(args) {
     const auto opts = gen_getopt();
 
+    opterr = 0;  // Disable error output
+
     int c;
     while ((c = getopt(argc, argv, opts.c_str())) != -1) {
         if (c == '?') {
