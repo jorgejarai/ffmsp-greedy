@@ -88,6 +88,11 @@ static std::size_t d(const std::string& str1, const std::string& str2) {
 
 ffmsp::result ffmsp::greedy(const std::vector<std::string>& strings,
                             double threshold) {
+    return ffmsp::random_greedy(strings, threshold, 1.0);
+}
+
+ffmsp::result ffmsp::random_greedy(const std::vector<std::string>& strings,
+                                   double threshold, double alpha) {
     check_strings(strings);
 
     std::size_t string_len = strings.front().size();
@@ -111,8 +116,14 @@ ffmsp::result ffmsp::greedy(const std::vector<std::string>& strings,
     }
 
     std::size_t metric = 0;
+
     for (std::size_t i = threshold_count; i < string_len; ++i) {
-        // Para cada carácter c en Σ:
+        if (alpha != 1.0 && RNG::get_instance().rand_real(0, 1) > alpha) {
+            word += RNG::get_instance().rand_choose(ALPHABET);
+            continue;
+        }
+
+        // Para cada carácter c en  Σ:
         //    Generar un candidato concatenando c
         //    Calculamos cuántos strings ≥ métrica para el candidato
         //    Escogemos el candidato con mayor cantidad
@@ -163,14 +174,4 @@ ffmsp::result ffmsp::greedy(const std::vector<std::string>& strings,
     }
 
     return {word, metric};
-}
-
-ffmsp::result ffmsp::random_greedy(const std::vector<std::string>& strings,
-                                   double threshold, double alpha) {
-    (void)threshold;
-    (void)alpha;
-
-    check_strings(strings);
-
-    return {"", 0};
 }

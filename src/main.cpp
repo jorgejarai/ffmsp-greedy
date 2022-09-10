@@ -32,10 +32,14 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    const auto [str, metric] =
+    const auto [det_str, det_metric] =
+        ffmsp::greedy({"AATG", "CTGA", "AAAA", "AATA"}, threshold);
+    const auto [rnd_str, rnd_metric] =
         ffmsp::greedy({"AATG", "CTGA", "AAAA", "AATA"}, threshold);
 
-    std::cout << str << " (" << metric << ")\n";
+    std::cout << det_str << " (" << det_metric << ")\n";
+
+    std::cout << rnd_str << " (" << rnd_metric << ")\n";
 
     return 0;
 }
