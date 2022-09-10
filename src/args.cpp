@@ -11,7 +11,10 @@ std::string Arguments::gen_getopt() {
 
     for (const auto& arg : m_def) {
         ret.push_back(arg.symbol);
-        ret.push_back(':');
+
+        if (!arg.optional) {
+            ret.push_back(':');
+        }
     }
 
     return ret;
@@ -36,6 +39,10 @@ Arguments::Arguments(const std::vector<ArgDefinition>& args, int argc,
 
         if (arg_def == m_def.end()) {
             exit(1);
+        }
+
+        if (arg_def->optional && optarg == nullptr) {
+            continue;
         }
 
         switch (arg_def->type) {

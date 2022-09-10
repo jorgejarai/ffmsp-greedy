@@ -7,12 +7,12 @@
 #include "greedy.h"
 #include "timer.h"
 
+// Treat -th as -t -h (the threshold value will actually be contained in the -h
+// argument)
 const std::vector<Arguments::ArgDefinition> args_list{
-    {'i', Arguments::ArgDefinition::STRING},
-    {'t', Arguments::ArgDefinition::STRING},
-    {'h',                                // Treat -th as -t -h
-     Arguments::ArgDefinition::DOUBLE},  // (the threshold value will actually
-                                         // be contained in the -h argument)
+    {'i', Arguments::ArgDefinition::STRING, false},
+    {'t', Arguments::ArgDefinition::STRING, true},
+    {'h', Arguments::ArgDefinition::DOUBLE, false},
 };
 
 int main(int argc, char* argv[]) {

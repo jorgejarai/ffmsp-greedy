@@ -14,6 +14,7 @@ public:
     struct ArgDefinition {
         char symbol;
         enum { INT, DOUBLE, STRING } type;
+        bool optional;
     };
 
 private:
