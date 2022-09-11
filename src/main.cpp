@@ -56,6 +56,7 @@ int main(int argc, char* argv[]) {
         std::cout << strings.at(i) << std::endl;
     }
     
+
     /*
     const auto [det_str, det_metric] =
         ffmsp::greedy({"AATG", "CTGA", "AAAA", "AATA"}, threshold);
