@@ -2,6 +2,8 @@
 #include <iostream>
 #include <thread>
 #include <vector>
+#include <fstream>
+#include <string>
 
 #include "args.h"
 #include "greedy.h"
@@ -20,6 +22,9 @@ int main(int argc, char* argv[]) {
 
     const auto instance_arg = args.get<std::string>('i');
     const auto threshold_arg = args.get<double>('h');
+    std::ifstream myfile;
+    std::string directory;
+    
 
     if (!instance_arg || !threshold_arg) {
         return 1;
@@ -31,7 +36,27 @@ int main(int argc, char* argv[]) {
     if (threshold > 1) {
         return 1;
     }
-
+    std::string line;
+    
+    directory = "FFMS_all_instances/" + instance + ".txt";
+    myfile.open(directory);
+    std::vector<std::string> strings;
+    if (myfile.is_open())
+    {
+        for (int i = 0; i < 10; i++)
+        {
+            getline(myfile, line);
+            strings.push_back(line);
+        }
+        myfile.close();
+    }
+    
+    for (size_t i = 0; i < strings.size(); i++)
+    {
+        std::cout << strings.at(i) << std::endl;
+    }
+    
+    /*
     const auto [det_str, det_metric] =
         ffmsp::greedy({"AATG", "CTGA", "AAAA", "AATA"}, threshold);
     const auto [rnd_str, rnd_metric] =
@@ -40,6 +65,6 @@ int main(int argc, char* argv[]) {
     std::cout << det_str << " (" << det_metric << ")\n";
 
     std::cout << rnd_str << " (" << rnd_metric << ")\n";
-
+    */
     return 0;
 }
