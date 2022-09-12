@@ -17,6 +17,7 @@ const std::vector<Arguments::ArgDefinition> args_list{
     {'i', Arguments::ArgDefinition::STRING, false},
     {'t', Arguments::ArgDefinition::STRING, true},
     {'h', Arguments::ArgDefinition::DOUBLE, false},
+    {'a', Arguments::ArgDefinition::DOUBLE, false},
 };
 
 int main(int argc, char* argv[]) {
@@ -24,15 +25,17 @@ int main(int argc, char* argv[]) {
 
     const auto instance_arg = args.get<std::string>('i');
     const auto threshold_arg = args.get<double>('h');
+    const auto alpha_arg = args.get<double>('a');
 
-    if (!instance_arg || !threshold_arg) {
+    if (!instance_arg || !threshold_arg || !alpha_arg) {
         return 1;
     }
 
     const auto instance = instance_arg.value();
     const auto threshold = threshold_arg.value();
+    const auto alpha = alpha_arg.value();
 
-    if (threshold < 0 || threshold > 1) {
+    if (threshold < 0 || threshold > 1 || alpha < 0 || alpha > 1) {
         return 1;
     }
 
@@ -63,7 +66,8 @@ int main(int argc, char* argv[]) {
 
     {
         Timer t(time);
-        const auto [det_str, det_metric] = ffmsp::greedy(strings, threshold);
+        const auto [det_str, det_metric] =
+            ffmsp::random_greedy(strings, threshold, alpha);
         std::cout << det_metric << ",";
     }
 
