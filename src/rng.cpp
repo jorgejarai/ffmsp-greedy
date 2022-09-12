@@ -2,7 +2,7 @@
 
 #include <random>
 
-RNG::RNG() : m_gen(m_rd()) {
+RNG::RNG() : m_gen(m_seed) {
 }
 
 int RNG::rand_int(int a, int b) {
