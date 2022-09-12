@@ -76,14 +76,30 @@ static char least_common_char(const std::map<char, std::size_t>& column) {
 
 // Hamming distance between str1 and str2
 static std::size_t d(const std::string& str1, const std::string& str2) {
+    const std::size_t min_size = std::min(str1.size(), str2.size());
+
     std::size_t distance = 0;
-    for (std::size_t i = 0; i < str1.size(); ++i) {
+    for (std::size_t i = 0; i < min_size; ++i) {
         if (str1[i] != str2[i]) {
             ++distance;
         }
     }
 
     return distance;
+}
+
+std::size_t calculate_metric(const std::vector<std::string>& strings,
+                             const std::string& candidate,
+                             std::size_t threshold_count) {
+    std::size_t metric = 0;
+
+    for (const auto& str : strings) {
+        if (d(str, candidate) >= threshold_count) {
+            ++metric;
+        }
+    }
+
+    return metric;
 }
 
 ffmsp::result ffmsp::greedy(const std::vector<std::string>& strings,
@@ -108,17 +124,15 @@ ffmsp::result ffmsp::random_greedy(const std::vector<std::string>& strings,
     }
 
     std::string word;
-    const std::size_t threshold_count = threshold * strings[0].length();
+    const std::size_t threshold_count = threshold * string_len;
 
     // Randomly construct the string until the threshold is reached
     for (std::size_t i = 0; i < threshold_count; ++i) {
-        word.push_back(least_common_char(V_j[0]));
+        word.push_back(least_common_char(V_j[i]));
     }
 
-    std::size_t metric = 0;
-
     for (std::size_t i = threshold_count; i < string_len; ++i) {
-        if (alpha >= 1.0 && RNG::get_instance().rand_real(0, 1) > alpha) {
+        if (alpha != 1.0 && RNG::get_instance().rand_real(0, 1) > alpha) {
             word += RNG::get_instance().rand_choose(ALPHABET);
             continue;
         }
@@ -130,48 +144,52 @@ ffmsp::result ffmsp::random_greedy(const std::vector<std::string>& strings,
         //    De no haberlo, se escoge al azar entre los empatados
         //    Como fallback, escogemos de V_j
 
-        std::map<std::string, std::size_t> candidate_metrics;
+        std::map<char, std::size_t> strings_over_threshold;
 
         // Calculate the metric for every possible candidate
         for (const auto& c : ALPHABET) {
-            std::string candidate = word + c;
-            std::size_t candidate_metric = 0;
+            const std::string candidate = word + c;
 
             for (const auto& str : strings) {
-                if (d(candidate, str) >= metric) {
-                    ++candidate_metric;
+                const std::size_t distance = d(candidate, str);
+
+                if (distance >= threshold_count) {
+                    strings_over_threshold[c]++;
                 }
             }
-
-            candidate_metrics[candidate] = candidate_metric;
         }
 
         // If there aren't any viable candidates, construct one with one of the
         // least used characters
-        if (candidate_metrics.empty()) {
+        if (std::all_of(strings_over_threshold.begin(),
+                        strings_over_threshold.end(),
+                        [](const auto& p) { return p.second == 0; })) {
             word.push_back(least_common_char(V_j[i]));
             continue;
         }
 
-        // Select the most used candidate (or choose one randomly if there are
-        // more)
-        auto max_it = std::max_element(candidate_metrics.begin(),
-                                       candidate_metrics.end());
+        // Select the most used candidate (or choose one randomly if there
+        // are more)
+        const auto max_it = std::max_element(
+            strings_over_threshold.begin(), strings_over_threshold.end(),
+            [](const auto& p1, const auto& p2) {
+                return p1.second < p2.second;
+            });
         std::size_t most_common_count = max_it->second;
 
-        std::vector<std::string> most_common_candidates;
-        transform_if(candidate_metrics,
-                     std::back_inserter(most_common_candidates),
-                     [most_common_count](
-                         const auto& pair) -> std::optional<std::string> {
-                         return pair.second == most_common_count
-                                    ? std::make_optional(pair.first)
-                                    : std::nullopt;
-                     });
+        std::vector<char> most_common_candidates;
+        transform_if(
+            strings_over_threshold, std::back_inserter(most_common_candidates),
+            [most_common_count](const auto& pair) -> std::optional<char> {
+                return pair.second == most_common_count
+                           ? std::make_optional(pair.first)
+                           : std::nullopt;
+            });
 
-        word = RNG::get_instance().rand_choose(most_common_candidates);
-        metric = most_common_count;
+        word.push_back(RNG::get_instance().rand_choose(most_common_candidates));
     }
+
+    const auto metric = calculate_metric(strings, word, threshold_count);
 
     return {word, metric};
 }

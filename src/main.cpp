@@ -1,13 +1,15 @@
 #include <chrono>
+#include <fstream>
 #include <iostream>
+#include <string>
 #include <thread>
 #include <vector>
-#include <fstream>
-#include <string>
 
 #include "args.h"
 #include "greedy.h"
 #include "timer.h"
+
+#define STRING_COUNT 10
 
 // Treat -th as -t -h (the threshold value will actually be contained in the -h
 // argument)
@@ -22,9 +24,6 @@ int main(int argc, char* argv[]) {
 
     const auto instance_arg = args.get<std::string>('i');
     const auto threshold_arg = args.get<double>('h');
-    std::ifstream myfile;
-    std::string directory;
-    
 
     if (!instance_arg || !threshold_arg) {
         return 1;
@@ -36,36 +35,27 @@ int main(int argc, char* argv[]) {
     if (threshold > 1) {
         return 1;
     }
-    std::string line;
-    
-    directory = "FFMS_all_instances/" + instance + ".txt";
-    myfile.open(directory);
+
+    const std::string instance_path = "../dataset/" + instance + ".txt";
+
+    std::ifstream instance_file;
+    instance_file.open(instance_path);
+
+    if (!instance_file.is_open()) {
+        return 1;
+    }
+
     std::vector<std::string> strings;
-    if (myfile.is_open())
-    {
-        for (int i = 0; i < 10; i++)
-        {
-            getline(myfile, line);
-            strings.push_back(line);
-        }
-        myfile.close();
+    for (int i = 0; i < STRING_COUNT; i++) {
+        std::string line;
+        getline(instance_file, line);
+        strings.push_back(line);
     }
-    
-    for (size_t i = 0; i < strings.size(); i++)
-    {
-        std::cout << strings.at(i) << std::endl;
-    }
-    
 
-    /*
-    const auto [det_str, det_metric] =
-        ffmsp::greedy({"AATG", "CTGA", "AAAA", "AATA"}, threshold);
-    const auto [rnd_str, rnd_metric] =
-        ffmsp::greedy({"AATG", "CTGA", "AAAA", "AATA"}, threshold);
+    instance_file.close();
 
-    std::cout << det_str << " (" << det_metric << ")\n";
+    const auto [det_str, det_metric] = ffmsp::greedy(strings, threshold);
+    std::cout << det_metric << "\n";
 
-    std::cout << rnd_str << " (" << rnd_metric << ")\n";
-    */
     return 0;
 }
