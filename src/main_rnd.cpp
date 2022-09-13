@@ -39,10 +39,8 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    const std::string instance_path = "../dataset/" + instance + ".txt";
-
     std::ifstream instance_file;
-    instance_file.open(instance_path);
+    instance_file.open(instance);
 
     if (!instance_file.is_open()) {
         return 1;
@@ -63,12 +61,11 @@ int main(int argc, char* argv[]) {
     instance_file.close();
 
     double time;
-
     {
         Timer t(time);
-        const auto [det_str, det_metric] =
+        const auto [result, fitness] =
             ffmsp::random_greedy(strings, threshold, alpha);
-        std::cout << det_metric << ",";
+        std::cout << fitness << ",";
     }
 
     std::cout << time << '\n';
