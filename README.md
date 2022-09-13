@@ -21,3 +21,5 @@ $ make
 $ ./build/greedy -i <ruta_instancia> -th <umbral>
 $ ./build/greedy_rnd -i <ruta_instancia> -th <umbral> -a <coef_determinismo>
 ```
+
+Los archivos del dataset no están incluidos en este repositorio.
