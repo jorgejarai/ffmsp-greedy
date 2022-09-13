@@ -102,6 +102,14 @@ std::size_t calculate_metric(const std::vector<std::string>& strings,
     return metric;
 }
 
+bool random_iteration(double alpha) {
+    if (alpha >= 1.0) {
+        return false;
+    }
+
+    return RNG::get_instance().rand_real(0, 1) > alpha;
+}
+
 ffmsp::result ffmsp::greedy(const std::vector<std::string>& strings,
                             double threshold) {
     return ffmsp::random_greedy(strings, threshold, 1.0);
@@ -128,12 +136,17 @@ ffmsp::result ffmsp::random_greedy(const std::vector<std::string>& strings,
 
     // Randomly construct the string until the threshold is reached
     for (std::size_t i = 0; i < threshold_count; ++i) {
+        if (random_iteration(alpha)) {
+            word.push_back(RNG::get_instance().rand_choose(ALPHABET));
+            continue;
+        }
+
         word.push_back(least_common_char(V_j[i]));
     }
 
     for (std::size_t i = threshold_count; i < string_len; ++i) {
-        if (alpha != 1.0 && RNG::get_instance().rand_real(0, 1) > alpha) {
-            word += RNG::get_instance().rand_choose(ALPHABET);
+        if (random_iteration(alpha)) {
+            word.push_back(RNG::get_instance().rand_choose(ALPHABET));
             continue;
         }
 
